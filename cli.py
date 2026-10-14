@@ -10,10 +10,17 @@ from selecao import selecionar_area
 def main():
     if len(sys.argv) < 2:
         sys.exit("Uso: python cli.py pasta_dos_videos [pasta_saida]")
-    pasta = Path(sys.argv[1]).expanduser()
-    if not pasta.is_dir():
-        sys.exit(f"Pasta não encontrada: {pasta}")
-    saida = Path(sys.argv[2]).expanduser() if len(sys.argv) > 2 else pasta / "cortados"
+    args = sys.argv[1:]
+    # Caminho com espaço sem aspas vira vários argumentos: junta até achar uma pasta existente.
+    pasta, resto = None, args
+    for n in range(1, len(args) + 1):
+        candidato = Path(" ".join(args[:n])).expanduser()
+        if candidato.is_dir():
+            pasta, resto = candidato, args[n:]
+            break
+    if pasta is None:
+        sys.exit(f'Pasta não encontrada: {args[0]}\nSe o caminho tem espaços, use aspas: python cli.py "C:\\minha pasta\\videos"')
+    saida = Path(" ".join(resto)).expanduser() if resto else pasta / "cortados"
 
     videos = listar_videos(pasta)
     if not videos:
